@@ -1,0 +1,13 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "skills",
+  "displayName": "Skills",
+  "version": "1.0.0",
+  "description": "Search, security-preview, install, and toggle local and verified community skills (skillsdirectory.com) with usage telemetry.",
+  "author": "milan-micieta",
+  "license": "MIT",
+  "keywords": ["skills", "marketplace", "skillsdirectory.com", "telemetry", "sidecar"],
+  "suggestedPrompts": [
+    "Open the Skills panel"
+  ]
+}

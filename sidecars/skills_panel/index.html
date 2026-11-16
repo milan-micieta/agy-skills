@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skills</title>
+  <script src="/preload.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:ROND,opsz,slnt,wdth,wght@0..100,6..144,-10..0,92..100,100..1000&family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="title">Skills</span>
+        <span id="summary-pill" class="pill num">—</span>
+      </div>
+      <div class="segmented" role="tablist" aria-label="Režim">
+        <button class="seg-btn on" data-tab="local" role="tab" aria-selected="true">Nainštalované</button>
+        <button class="seg-btn" data-tab="discover" role="tab" aria-selected="false">Objaviť (skillsdirectory.com)</button>
+      </div>
+    </header>
+
+    <section id="view-local" class="view active">
+      <div class="toolbar">
+        <input id="local-filter" type="search" placeholder="Filtrovať skilly..." autocomplete="off" />
+        <select id="local-status-filter" aria-label="Filter stavu">
+          <option value="all">Všetky</option>
+          <option value="enabled">Aktívne</option>
+          <option value="disabled">Vypnuté</option>
+          <option value="editable">Global &amp; Projekt</option>
+          <option value="system">Builtin &amp; Pluginy</option>
+        </select>
+      </div>
+      <div id="local-list" class="list">
+        <div class="status-line">Načítavam skilly...</div>
+      </div>
+    </section>
+
+    <section id="view-discover" class="view">
+      <form id="search-form" class="toolbar">
+        <input id="online-query" type="search" placeholder="Filtrovať na skillsdirectory.com (napr. react, git, testing)..." autocomplete="off" />
+        <button type="submit" class="btn primary">Hľadať</button>
+      </form>
+      <div id="online-status" class="status-line"></div>
+      <div id="online-list" class="list"></div>
+    </section>
+  </div>
+
+  <dialog id="preview-dialog" class="modal">
+    <div class="modal-head">
+      <div>
+        <div id="pv-title" class="modal-title">Skill Preview</div>
+        <div id="pv-sub" class="modal-sub"></div>
+      </div>
+      <button id="pv-close" class="icon-btn" aria-label="Zavrieť">&times;</button>
+    </div>
+
+    <div id="pv-security" class="security-box"></div>
+
+    <div class="install-bar">
+      <label class="scope-label">
+        Cieľ:
+        <select id="pv-scope">
+          <option value="global">Globálne (~/.gemini/config/skills)</option>
+        </select>
+      </label>
+      <button id="pv-install" class="btn primary">Nainštalovať</button>
+    </div>
+
+    <pre id="pv-content" class="code-preview"></pre>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>
