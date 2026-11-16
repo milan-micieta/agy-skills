@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  getLocalSkillDetail,
   installSkill,
   listLocalSkills,
   previewSkill,
@@ -10,7 +11,7 @@ import {
 } from './skills_service.mjs';
 
 const { SidecarApp, Response } = await import('sidecar_sdk').catch(() =>
-  import('C:/Users/milan/.gemini/config/node_modules/sidecar_sdk/index.mjs')
+  import('file:///C:/Users/milan/.gemini/config/node_modules/sidecar_sdk/index.mjs')
 );
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -82,6 +83,20 @@ app.api('/api/local', (data) => {
     return { ...result, workspaces };
   } catch (e) {
     return errRes(e.message, 500);
+  }
+}, 'GET');
+
+app.api('/api/local/detail', (data) => {
+  try {
+    const workspaces = parseWorkspaces(data?.workspaces);
+    return getLocalSkillDetail({
+      id: data?.id || '',
+      scope: data?.scope || '',
+      pluginName: data?.pluginName || '',
+      workspacePaths: workspaces,
+    });
+  } catch (e) {
+    return errRes(e.message, 404);
   }
 }, 'GET');
 

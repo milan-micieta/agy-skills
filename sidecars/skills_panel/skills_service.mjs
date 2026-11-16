@@ -8,10 +8,11 @@ import {
   realpathSync,
   renameSync,
   rmSync,
+  statSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { basename, dirname, join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const SOURCE_RE = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
 export const SKILL_RE = /^[a-zA-Z0-9._-]+$/;
@@ -25,12 +26,12 @@ const BUILTIN_SKILLS = join(AGY_DIR, 'builtin', 'skills');
 const USAGE_LOG = join(CFG_DIR, 'logs', 'skill-usage.jsonl');
 
 const SECURITY_CHECKS = [
-  { re: /\b(curl|wget|iwr|Invoke-WebRequest)\b[^|\n]*\|\s*(ba|z|fi)?sh\b/i, msg: 'Sťahovanie a priame spustenie skriptu (curl | sh)' },
+  { re: /\b(curl|wget|iwr|Invoke-WebRequest)\b[^|\n]*\|\s*(ba|z|fi)?sh\b/i, msg: 'Downloads and executes a remote script directly (curl | sh)' },
   { re: /\b(iwr|Invoke-WebRequest|irm)\b[^\n]*\|\s*(iex|Invoke-Expression)\b/i, msg: 'PowerShell download + Invoke-Expression' },
-  { re: /\brm\s+-rf\s+[\/~]/i, msg: 'Nebezpečné rekurzívne mazanie (rm -rf)' },
-  { re: /--no-verify\b/i, msg: 'Obchádzanie git hookov (--no-verify)' },
-  { re: /\b(\.env|id_rsa|id_ed25519|secrets\.json|printenv)\b/i, msg: 'Zmienka o citlivých súboroch alebo env premenných' },
-  { re: /\bbase64\s+-d\b.*\|\s*(sh|bash|node|python)/i, msg: 'Obfuskované base64 vykonanie príkazu' },
+  { re: /\brm\s+-rf\s+[\/~]/i, msg: 'Dangerous recursive deletion (rm -rf)' },
+  { re: /--no-verify\b/i, msg: 'Bypasses git hooks (--no-verify)' },
+  { re: /\b(\.env|id_rsa|id_ed25519|secrets\.json|printenv)\b/i, msg: 'References sensitive files or environment variables' },
+  { re: /\bbase64\s+-d\b.*\|\s*(sh|bash|node|python)/i, msg: 'Obfuscated base64 command execution' },
 ];
 
 function parseFrontmatter(txt) {
@@ -101,6 +102,13 @@ function scanSkillFolder(skillDir, { id, enabled, scope, projectLabel, pluginNam
   seenPaths.add(real);
   if (enabled) seenNames.add(name);
 
+  let updatedAt = null;
+  try {
+    updatedAt = statSync(real).mtime.toISOString();
+  } catch {}
+  const learningsPath = join(skillDir, 'learnings.md');
+  const hasLearnings = existsSync(learningsPath);
+
   return {
     id,
     name,
@@ -111,10 +119,12 @@ function scanSkillFolder(skillDir, { id, enabled, scope, projectLabel, pluginNam
     projectLabel: projectLabel || null,
     pluginName: pluginName || null,
     fileUri: pathToFileURL(real).href,
+    learningsUri: hasLearnings ? pathToFileURL(safeRealpath(learningsPath)).href : null,
     tokens: Math.round(raw.length / 4),
     descTokens: Math.round(fm.description.length / 4),
     uses60d: usageCounts[id] || usageCounts[name] || 0,
-    hasLearnings: existsSync(join(skillDir, 'learnings.md')),
+    hasLearnings,
+    updatedAt,
   };
 }
 
@@ -428,4 +438,52 @@ export function installSkill({ source, skillId, folderPath, scope, workspacePath
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
+}
+
+function listSkillFiles(rootDir, curDir = rootDir, depth = 0, out = []) {
+  if (depth > 2 || out.length >= 50 || !existsSync(curDir)) return out;
+  for (const entry of readdirSync(curDir, { withFileTypes: true })) {
+    if (entry.name === '.git' || entry.name === 'node_modules') continue;
+    const full = join(curDir, entry.name);
+    const rel = relative(rootDir, full).replace(/\\/g, '/');
+    if (entry.isDirectory()) {
+      out.push({ name: entry.name, path: rel, type: 'dir', size: 0, uri: null });
+      listSkillFiles(rootDir, full, depth + 1, out);
+    } else if (entry.isFile() || entry.isSymbolicLink()) {
+      let size = 0;
+      try {
+        size = statSync(full).size;
+      } catch {}
+      out.push({
+        name: entry.name,
+        path: rel,
+        type: 'file',
+        size,
+        uri: pathToFileURL(safeRealpath(full)).href,
+      });
+    }
+    if (out.length >= 50) break;
+  }
+  return out;
+}
+
+export function getLocalSkillDetail({ id, scope, pluginName, workspacePaths = [] }) {
+  const { skills } = listLocalSkills(workspacePaths);
+  const match = skills.find(
+    (s) =>
+      s.id === id &&
+      (!scope || s.scope === scope) &&
+      (!pluginName || s.pluginName === pluginName)
+  );
+  if (!match) throw new Error(`Skill "${id}" not found.`);
+  const skillFile = fileURLToPath(match.fileUri);
+  const skillDir = dirname(skillFile);
+  const content = readFileSync(skillFile, 'utf8');
+  return {
+    skill: match,
+    content,
+    warnings: auditSkillContent(content),
+    files: listSkillFiles(skillDir),
+    folderPath: skillDir,
+  };
 }
