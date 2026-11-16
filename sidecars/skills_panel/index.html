@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sk">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,71 +8,188 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:ROND,opsz,slnt,wdth,wght@0..100,6..144,-10..0,92..100,100..1000&family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/styles.css?v=5" />
 </head>
 <body>
   <div class="shell">
-    <header class="topbar">
-      <div class="brand">
-        <span class="title">Skills</span>
-        <span id="summary-pill" class="pill num">—</span>
-      </div>
-      <div class="segmented" role="tablist" aria-label="Režim">
-        <button class="seg-btn on" data-tab="local" role="tab" aria-selected="true">Nainštalované</button>
-        <button class="seg-btn" data-tab="discover" role="tab" aria-selected="false">Objaviť (skillsdirectory.com)</button>
-      </div>
-    </header>
+    <!-- ==================== LIST SCREEN ==================== -->
+    <main id="screen-list" class="screen active">
+      <header class="topbar">
+        <div class="brand">
+          <span class="eyebrow">Skills</span>
+          <span id="summary-pill" class="pill num">—</span>
+        </div>
+        <div class="segmented" role="tablist" aria-label="View mode">
+          <button type="button" class="seg-btn on" data-mode="local" role="tab" aria-selected="true">Installed</button>
+          <button type="button" class="seg-btn" data-mode="discover" role="tab" aria-selected="false">Discover</button>
+        </div>
+      </header>
 
-    <section id="view-local" class="view active">
-      <div class="toolbar">
-        <input id="local-filter" type="search" placeholder="Filtrovať skilly..." autocomplete="off" />
-        <select id="local-status-filter" aria-label="Filter stavu">
-          <option value="all">Všetky</option>
-          <option value="enabled">Aktívne</option>
-          <option value="disabled">Vypnuté</option>
-          <option value="editable">Global &amp; Projekt</option>
-          <option value="system">Builtin &amp; Pluginy</option>
-        </select>
-      </div>
-      <div id="local-list" class="list">
-        <div class="status-line">Načítavam skilly...</div>
-      </div>
-    </section>
+      <h1 id="list-heading" class="page-title">Installed skills</h1>
 
-    <section id="view-discover" class="view">
-      <form id="search-form" class="toolbar">
-        <input id="online-query" type="search" placeholder="Filtrovať na skillsdirectory.com (napr. react, git, testing)..." autocomplete="off" />
-        <button type="submit" class="btn primary">Hľadať</button>
+      <form id="toolbar-form" class="toolbar" role="search">
+        <div class="search-box">
+          <svg class="search-ico" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.75" />
+            <path d="M10.5 10.5L14 14" stroke-linecap="round" />
+          </svg>
+          <input id="search-input" type="search" placeholder="Search skills..." autocomplete="off" />
+        </div>
+
+        <div id="local-controls" class="toolbar-actions">
+          <button id="filter-trigger" type="button" class="icon-tool-btn" aria-label="Filter skills" title="Filter" aria-haspopup="menu" aria-expanded="false" commandfor="filter-popover" command="toggle-popover">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M2 3.5h12l-4.5 5.2v3.8l-3 1.5V8.7L2 3.5z" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <div id="filter-popover" class="menu-popover" popover="auto">
+            <div focusgroup="menu nomemory" aria-labelledby="filter-trigger" class="menu-list">
+              <button type="button" class="menu-item active" data-filter="all">All skills</button>
+              <button type="button" class="menu-item" data-filter="enabled">Active only</button>
+              <button type="button" class="menu-item" data-filter="disabled">Disabled only</button>
+              <button type="button" class="menu-item" data-filter="editable">Global &amp; Project</button>
+              <button type="button" class="menu-item" data-filter="system">Builtin &amp; Plugins</button>
+            </div>
+          </div>
+
+          <button id="sort-trigger" type="button" class="icon-tool-btn" aria-label="Sort skills" title="Sort" aria-haspopup="menu" aria-expanded="false" commandfor="sort-popover" command="toggle-popover">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M5 3v10M5 13l-2.5-2.5M5 13l2.5-2.5M11 13V3M11 3L8.5 5.5M11 3l2.5 2.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <div id="sort-popover" class="menu-popover" popover="auto">
+            <div focusgroup="menu nomemory" aria-labelledby="sort-trigger" class="menu-list">
+              <button type="button" class="menu-item active" data-sort="uses">Most used</button>
+              <button type="button" class="menu-item" data-sort="name">Name (A–Z)</button>
+              <button type="button" class="menu-item" data-sort="updated">Recently updated</button>
+              <button type="button" class="menu-item" data-sort="tokens">Token size</button>
+            </div>
+          </div>
+        </div>
+
+        <button id="add-btn" type="button" class="btn add-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M8 3v10M3 8h10" stroke-linecap="round" />
+          </svg>
+          <span>Add</span>
+        </button>
       </form>
-      <div id="online-status" class="status-line"></div>
-      <div id="online-list" class="list"></div>
+
+      <div id="list-status" class="status-line"></div>
+      <div id="skill-list" class="skill-list">
+        <div class="status-line">Loading skills...</div>
+      </div>
+    </main>
+
+    <!-- ==================== DETAIL SCREEN ==================== -->
+    <section id="screen-detail" class="screen" hidden>
+      <div class="detail-topbar">
+        <button id="detail-back" type="button" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M10 3.5L5.5 8 10 12.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span id="detail-back-label">Installed skills</span>
+        </button>
+        <button id="detail-open-btn" type="button" class="link-btn" hidden>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M6.5 3.5H4a1 1 0 0 0-1 1v7.5a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V9.5" stroke-linecap="round" />
+            <path d="M9.5 3H13v3.5M13 3L7.5 8.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Open SKILL.md</span>
+        </button>
+      </div>
+
+      <header class="detail-header">
+        <div class="detail-header-left">
+          <div id="detail-icon" class="skill-square lg" aria-hidden="true"></div>
+          <div class="detail-title-wrap">
+            <h1 id="detail-title" class="detail-title">Skill</h1>
+            <div id="detail-sub" class="detail-sub"></div>
+          </div>
+        </div>
+        <div class="detail-header-actions">
+          <button id="detail-primary-btn" type="button" class="btn primary">Add</button>
+        </div>
+      </header>
+
+      <div class="detail-tabs" focusgroup="tablist nomemory" aria-label="Skill details">
+        <button type="button" id="tab-overview" class="detail-tab" role="tab" aria-selected="true" focusgroupstart data-panel="overview">Overview</button>
+        <button type="button" id="tab-contents" class="detail-tab" role="tab" aria-selected="false" data-panel="contents">Contents</button>
+      </div>
+
+      <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+        <div class="detail-grid">
+          <div class="detail-main">
+            <div class="stats-card">
+              <div class="stat-col">
+                <div id="stat-1-label" class="stat-label">Usage</div>
+                <div id="stat-1-val" class="stat-val num">—</div>
+                <div id="stat-1-sub" class="stat-sub">runs · 60 days</div>
+              </div>
+              <div class="stat-divider" aria-hidden="true"></div>
+              <div class="stat-col">
+                <div id="stat-2-label" class="stat-label">Context</div>
+                <div id="stat-2-val" class="stat-val num">—</div>
+                <div id="stat-2-sub" class="stat-sub">tokens</div>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h2 class="section-label">Description</h2>
+              <p id="detail-desc" class="detail-desc"></p>
+            </div>
+
+            <div id="detail-install-target" class="detail-section" hidden>
+              <h2 class="section-label">Install location</h2>
+              <select id="detail-scope-select" class="scope-select">
+                <option value="global">Global (~/.gemini/config/skills)</option>
+              </select>
+            </div>
+
+            <div id="detail-security" class="security-box" hidden></div>
+
+            <div id="detail-cats-wrap" class="detail-section">
+              <h2 class="section-label">Categories</h2>
+              <div id="detail-cats" class="cat-list"></div>
+            </div>
+          </div>
+
+          <aside class="meta-card" aria-label="Skill metadata">
+            <div class="meta-block">
+              <div class="meta-label">Source</div>
+              <div id="meta-source" class="meta-val"></div>
+            </div>
+            <div id="meta-plugin-block" class="meta-block" hidden>
+              <div id="meta-plugin-label" class="meta-label">Plugin</div>
+              <div id="meta-plugin" class="meta-val"></div>
+            </div>
+            <div class="meta-block">
+              <div class="meta-label">Connectors &amp; tools</div>
+              <div id="meta-tools" class="meta-val muted"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div id="panel-contents" role="tabpanel" aria-labelledby="tab-contents" hidden="until-found">
+        <div class="contents-inner">
+          <div class="contents-bar">
+            <details id="detail-files-wrap" class="files-disclosure" hidden>
+              <summary id="detail-files-summary">Files</summary>
+              <div id="detail-files" class="file-chips"></div>
+            </details>
+            <div class="segmented sm" role="tablist" aria-label="Content format">
+              <button type="button" class="seg-btn sm on" data-md-view="preview" aria-selected="true">Preview</button>
+              <button type="button" class="seg-btn sm" data-md-view="raw" aria-selected="false">Raw</button>
+            </div>
+          </div>
+          <div id="detail-md" class="md-preview">Loading...</div>
+          <pre id="detail-code" class="code-preview" hidden></pre>
+        </div>
+      </div>
     </section>
   </div>
 
-  <dialog id="preview-dialog" class="modal">
-    <div class="modal-head">
-      <div>
-        <div id="pv-title" class="modal-title">Skill Preview</div>
-        <div id="pv-sub" class="modal-sub"></div>
-      </div>
-      <button id="pv-close" class="icon-btn" aria-label="Zavrieť">&times;</button>
-    </div>
-
-    <div id="pv-security" class="security-box"></div>
-
-    <div class="install-bar">
-      <label class="scope-label">
-        Cieľ:
-        <select id="pv-scope">
-          <option value="global">Globálne (~/.gemini/config/skills)</option>
-        </select>
-      </label>
-      <button id="pv-install" class="btn primary">Nainštalovať</button>
-    </div>
-
-    <pre id="pv-content" class="code-preview"></pre>
-  </dialog>
-
-  <script src="/app.js"></script>
+  <script src="/app.js?v=4"></script>
 </body>
 </html>
